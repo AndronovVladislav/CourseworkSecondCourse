@@ -1,0 +1,3 @@
+/Users/v-andronov/CLionProjects/CourseworkSecondCourse/cmake-build-debug/CMakeFiles/CourseworkSecondCourse.dir
+/Users/v-andronov/CLionProjects/CourseworkSecondCourse/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/v-andronov/CLionProjects/CourseworkSecondCourse/cmake-build-debug/CMakeFiles/rebuild_cache.dir
