@@ -12,10 +12,6 @@ struct Node {
 template <typename T>
 class LinkedList {
 public:
-//    LinkedList(Node<T> *defHead, Node<T> *defTail) : head(defHead), tail(defTail) {
-//        head->next = tail;
-//    }
-
     LinkedList() : size(0) {
         head = new Node<T>();
         tail = new Node<T>();
@@ -24,25 +20,25 @@ public:
     }
 
     ~LinkedList() {
-        auto toDelete = head;
-        while (head) {
-            head = head->next;
-            delete toDelete;
-            toDelete = head;
-        }
-
-//        auto headDown = head->down;
+//        auto toDelete = head;
 //        while (head) {
-//            auto headCopy = head;
-//            auto toDelete = headCopy;
-//            while (toDelete) {
-//                headCopy = headCopy->next;
-//                delete toDelete;
-//                toDelete = headCopy;
-//            }
-//            head = headDown;
-//            headDown = head->down;
+//            head = head->next;
+//            delete toDelete;
+//            toDelete = head;
 //        }
+
+        auto headDown = head->down;
+        while (head) {
+            auto headCopy = head;
+            auto toDelete = headCopy;
+            while (toDelete) {
+                headCopy = headCopy->next;
+                delete toDelete;
+                toDelete = headCopy;
+            }
+            head = headDown;
+            headDown = head->down;
+        }
     }
 
     void insert(T defData) {
