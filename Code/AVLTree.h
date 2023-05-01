@@ -1,7 +1,7 @@
 #ifndef COURSEWORKSECONDCOURSE_AVLTREE_H
 #define COURSEWORKSECONDCOURSE_AVLTREE_H
 
-#include "common.h"
+#include "../common.h"
 
 template <class T>
 struct TreeNode {
@@ -16,190 +16,288 @@ struct TreeNode {
 template <class T>
 class AVLTree {
 public:
-    AVLTree() : root_(nullptr), size_(0) {};
 
-    void insert(T key) {
-        root_ = insert(root_, key);
-    }
+    AVLTree() : root_(nullptr) {};
 
-    TreeNode<T>* find(T key) {
-        TreeNode<T> *res = recursiveFind(root_, key);
-        return res ? res : nullptr;
-    }
+    void insert(T key, int64_t& operations);
 
-    void erase(T key) {
-        root_ = erase(root_, key);
-    }
+    TreeNode<T>* find(T key, int64_t& operations);
 
-    void print() {
-        print(root_, 0);
-    }
+    void erase(T key, int64_t& operations);
+
+    void print();
 
     ~AVLTree() {
         destroy(root_);
         root_ = nullptr;
-        size_ = 0;
     }
 
 private:
     TreeNode<T> *root_;
-    int size_;
 
-    int height(TreeNode<T>* node) {
-        return node ? node->height : 0;
-    }
+    int height(TreeNode<T>* node, int64_t& operations);
 
-    int balanceFactor(TreeNode<T>* node) {
-        return height(node->left) - height(node->right);
-    }
+    int balanceFactor(TreeNode<T>* node, int64_t& operations);
 
-    void updateHeight(TreeNode<T>* node) {
-        node->height =
-                (height(node->left) > height(node->right) ? height(node->left) : height(node->right)) +
-                1;
-    }
+    void updateHeight(TreeNode<T>* node, int64_t& operations);
 
-    TreeNode<T>* rightRotation(TreeNode<T>* node) {
-        TreeNode<T> *left_child = node->left;
-        node->left = left_child->right;
-        left_child->right = node;
+    TreeNode<T>* rightRotation(TreeNode<T>* node, int64_t& operations);
 
-        updateHeight(node);
-        updateHeight(left_child);
+    TreeNode<T>* leftRotation(TreeNode<T>* node, int64_t& operations);
 
-        return left_child;
-    }
+    TreeNode<T>* balancing(TreeNode<T>* node, int64_t& operations);
 
-    TreeNode<T>* leftRotation(TreeNode<T>* node) {
-        TreeNode<T>* right_child = node->right;
-        node->right = right_child->left;
-        right_child->left = node;
+    TreeNode<T>* insert(TreeNode<T>* node, T key, int64_t& operations);
 
-        updateHeight(node);
-        updateHeight(right_child);
+    TreeNode<T>* find(TreeNode<T>* node, T key, int64_t& operations);
 
-        return right_child;
-    }
+    TreeNode<T>* findMin(TreeNode<T>* node, int64_t& operations);
 
-    TreeNode<T>* balancing(TreeNode<T>* node) {
-        updateHeight(node);
+    TreeNode<T>* erase(TreeNode<T>* node, T key, int64_t& operations);
 
-        if (balanceFactor(node) == 2) {
-            if (balanceFactor(node->left) < 0) {
-                node->left = leftRotation(node->left);
-            }
-            return rightRotation(node);
-        } else if (balanceFactor(node) == -2) {
-            if (balanceFactor(node->right) > 0) {
-                node->right = rightRotation(node->right);
-            }
-            return leftRotation(node);
-        }
+    TreeNode<T>* eraseMin(TreeNode<T>* node, int64_t& operations);
 
-        return node;
-    }
+    void print(TreeNode<T>* node, size_t level);
 
-    TreeNode<T>* insert(TreeNode<T>* node, T key) {
-        if (!node) {
-            ++size_;
-            return new TreeNode<T>(key);
-        }
-
-        if (key < node->data) {
-            node->left = insert(node->left, key);
-        } else if (key > node->data) {
-            node->right = insert(node->right, key);
-        }
-
-        return balancing(node);
-    }
-
-    TreeNode<T>* findMin(TreeNode<T>* node) {
-        return node->left ? findMin(node->left) : node;
-    }
-
-    TreeNode<T>* eraseMin(TreeNode<T>* node) {
-        if (!node->left) {
-            return node->right;
-        }
-
-        node->left = eraseMin(node->left);
-        return balancing(node);
-    }
-
-    TreeNode<T>* erase(TreeNode<T>* node, T key) {
-        if (!node) {
-            return nullptr;
-        }
-
-        if (key < node->data) {
-            node->left = erase(node->left, key);
-        } else if (key > node->data) {
-            node->right = erase(node->right, key);
-        } else {
-            --size_;
-            if (!node->left && !node->right) {
-                // leaf
-                delete node;
-                node = nullptr;
-                return nullptr;
-            } else if ((!node->left && node->right) || (node->left && !node->right)) {
-                // one child
-                if (node->left) {
-                    node->data = node->left->data;
-                    delete node->left;
-                    node->left = nullptr;
-                } else {
-                    node->data = node->right->data;
-                    delete node->right;
-                    node->right = nullptr;
-                }
-                return balancing(node);
-            } else {
-                // two children
-                TreeNode<T>* true_deleting = findMin(node->right);
-                node->data = true_deleting->data;
-
-                if (true_deleting->right) {
-                    true_deleting->data = true_deleting->right->data;
-                    delete true_deleting->right;
-                    true_deleting->right = nullptr;
-                }
-                return balancing(true_deleting);
-            }
-        }
-        return balancing(node);
-    }
-
-    TreeNode<T>* recursiveFind(TreeNode<T>* node, T key) {
-        if (!node) {
-            return nullptr;
-        } else if (node->data == key) {
-            return node;
-        } else if (node->data < key) {
-            return recursiveFind(node->right, key);
-        } else {
-            return recursiveFind(node->left, key);
-        }
-    }
-
-    void print(TreeNode<T>* node, size_t level) {
-        if (!node) {
-            return;
-        }
-
-        print(node->right, level + 1);
-        std::cout << std::setw(level * 4) << "" << node->data << "\n";
-        print(node->left, level + 1);
-    }
-
-    void destroy(TreeNode<T>* node) {
-        if (node) {
-            destroy(node->left);
-            destroy(node->right);
-            delete node;
-        }
-    }
+    void destroy(TreeNode<T>* node);
 };
+
+template <class T>
+void AVLTree<T>::insert(T key, int64_t& operations) {
+    operations += 2;
+    root_ = insert(root_, key, operations);
+}
+
+template <class T>
+TreeNode<T>* AVLTree<T>::find(T key, int64_t& operations) {
+    operations += 5; // инициализация + присваивание + вызов функции + логика + возврат
+    TreeNode<T> *res = find(root_, key, operations);
+    return res ? res : nullptr;
+}
+
+template <class T>
+void AVLTree<T>::erase(T key, int64_t& operations) {
+    operations += 2;
+    root_ = erase(root_, key, operations);
+}
+
+template <class T>
+void AVLTree<T>::print() {
+    print(root_, 0);
+}
+
+template <class T>
+int AVLTree<T>::height(TreeNode<T>* node, int64_t& operations) {
+    operations += 1;
+    if (node) {
+        operations += 2;
+        return node->height;
+    }
+    operations += 1;
+    return 0;
+}
+
+template <class T>
+int AVLTree<T>::balanceFactor(TreeNode<T>* node, int64_t& operations) {
+    operations += 4;
+    return height(node->left, operations) - height(node->right, operations);
+}
+
+template <class T>
+void AVLTree<T>::updateHeight(TreeNode<T>* node, int64_t& operations) {
+    operations += 10; // присваивание, 3 вызова функций, 4 обращения, арифметика, логика
+    node->height =
+            (height(node->left, operations) > height(node->right, operations) ?
+                height(node->left, operations) :
+                height(node->right, operations)
+            ) + 1;
+}
+
+template <class T>
+TreeNode<T>* AVLTree<T>::rightRotation(TreeNode<T>* node, int64_t& operations) {
+    operations += 8;
+    TreeNode<T> *left_child = node->left;
+    node->left = left_child->right;
+    left_child->right = node;
+
+    operations += 2;
+    updateHeight(node, operations);
+    updateHeight(left_child, operations);
+
+    operations += 1;
+    return left_child;
+}
+
+template <class T>
+TreeNode<T>* AVLTree<T>::leftRotation(TreeNode<T>* node, int64_t& operations) {
+    operations += 8;
+    TreeNode<T>* right_child = node->right;
+    node->right = right_child->left;
+    right_child->left = node;
+
+    operations += 2;
+    updateHeight(node, operations);
+    updateHeight(right_child, operations);
+
+    operations += 1;
+    return right_child;
+}
+
+template <class T>
+TreeNode<T>* AVLTree<T>::balancing(TreeNode<T>* node, int64_t& operations) {
+    operations += 1;
+    updateHeight(node, operations);
+
+    if (balanceFactor(node, operations) == 2) {
+        operations += 4;
+        if (balanceFactor(node->left, operations) < 0) {
+            operations += 4;
+            node->left = leftRotation(node->left, operations);
+        }
+        operations += 2;
+        return rightRotation(node, operations);
+    } else if (balanceFactor(node, operations) == -2) {
+        operations += 4;
+        if (balanceFactor(node->right, operations) > 0) {
+            operations += 4;
+            node->right = rightRotation(node->right, operations);
+        }
+        operations += 2;
+        return leftRotation(node, operations);
+    }
+
+    operations += 2; // 2 "неудачных" сравнения
+    return node;
+}
+
+template <class T>
+TreeNode<T>* AVLTree<T>::insert(TreeNode<T>* node, T key, int64_t& operations) {
+    operations += 1;
+    if (!node) {
+        operations += 7; // возврат + выделение + вызов конструктора + инициализация 4 полей
+        return new TreeNode<T>(key);
+    }
+
+    if (key < node->data) {
+        operations += 5;
+        node->left = insert(node->left, key, operations);
+    } else if (key > node->data) {
+        operations += 5;
+        node->right = insert(node->right, key, operations);
+    } else {
+        operations += 2;
+    }
+
+    operations += 1;
+    return balancing(node, operations);
+}
+
+template <class T>
+TreeNode<T>* AVLTree<T>::findMin(TreeNode<T>* node, int64_t& operations) {
+    operations += 1;
+    if (node->left) {
+        operations += 2;
+        return findMin(node->left, operations);
+    }
+    operations += 1;
+    return node;
+}
+
+template <class T>
+TreeNode<T>* AVLTree<T>::eraseMin(TreeNode<T>* node, int64_t& operations) {
+    operations += 2;
+    if (!node->left) {
+        operations += 2;
+        return node->right;
+    }
+
+    operations += 6;
+    node->left = eraseMin(node->left);
+    return balancing(node, operations);
+}
+
+template <class T>
+TreeNode<T>* AVLTree<T>::erase(TreeNode<T>* node, T key, int64_t& operations) {
+    operations += 2;
+    if (!node) {
+        operations += 1;
+        return nullptr;
+    }
+
+    if (key < node->data) {
+        node->left = erase(node->left, key, operations);
+    } else if (key > node->data) {
+        node->right = erase(node->right, key, operations);
+    } else {
+        if (!node->left && !node->right) {
+            // leaf
+            delete node;
+            node = nullptr;
+            return nullptr;
+        } else if ((!node->left && node->right) || (node->left && !node->right)) {
+            // one child
+            if (node->left) {
+                node->data = node->left->data;
+                delete node->left;
+                node->left = nullptr;
+            } else {
+                node->data = node->right->data;
+                delete node->right;
+                node->right = nullptr;
+            }
+            return balancing(node, operations);
+        } else {
+            // two children
+            TreeNode<T>* true_deleting = findMin(node->right, operations);
+            node->data = true_deleting->data;
+
+            if (true_deleting->right) {
+                true_deleting->data = true_deleting->right->data;
+                delete true_deleting->right;
+                true_deleting->right = nullptr;
+            }
+            return balancing(true_deleting, operations);
+        }
+    }
+    return balancing(node, operations);
+}
+
+template <class T>
+TreeNode<T>* AVLTree<T>::find(TreeNode<T>* node, T key, int64_t& operations) {
+    operations += 2;
+    if (!node) {
+        operations += 1;
+        return nullptr;
+    } else if (node->data == key) {
+        operations += 3;
+        return node;
+    } else if (node->data < key) {
+        operations += 7;
+        return find(node->right, key, operations);
+    } else {
+        operations += 7;
+        return find(node->left, key, operations);
+    }
+}
+
+template <class T>
+void AVLTree<T>::print(TreeNode<T>* node, size_t level) {
+    if (!node) {
+        return;
+    }
+
+    print(node->right, level + 1);
+    std::cout << std::setw(level * 4) << "" << node->data << "\n";
+    print(node->left, level + 1);
+}
+
+template <class T>
+void AVLTree<T>::destroy(TreeNode<T>* node) {
+    if (node) {
+        destroy(node->left);
+        destroy(node->right);
+        delete node;
+    }
+}
 
 #endif //COURSEWORKSECONDCOURSE_AVLTREE_H
