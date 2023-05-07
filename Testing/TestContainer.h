@@ -6,68 +6,96 @@
 template <class T>
 class TestContainer {
 public:
-    explicit TestContainer(size_t batchSize) :
-        data_({0, 0, 0, 0, 0, 0}) {
-        tests = createTestsBatch<T>(batchSize);
+    TestContainer(size_t batchSize, std::string containedType) :
+        counters_(11, 0), containedType_(std::move(containedType)) {
+        initState_ = createTestsBatch<T>(batchSize);
     };
 
     template <class K>
     void startTests(K dataStructure) {
+        fillDS(dataStructure);
+
         for (int i = 0; i < TESTS_AMOUNT; ++i) {
             startInsertionTest(dataStructure);
             startSearchTest(dataStructure);
             startErasureTest(dataStructure);
         }
 
-        // хз как будет реализован подсчёт операций, так что возможно их тоже надо будет делить
-        for (auto& i : {1, 3, 5}) {
-            data_[i] /= TESTS_AMOUNT;
+        for (int i = 0; i < 6; ++i) {
+            counters_[i] /= TESTS_AMOUNT;
         }
+
+        destroyDS(dataStructure);
+    }
+
+    template <class K>
+    void fillDS(K& dataStructure) {
+        auto start = std::chrono::high_resolution_clock::now();
+
+        for (auto& elem : initState_) {
+            dataStructure.insert(elem, counters_[6]);
+        }
+
+        auto elapsed = std::chrono::high_resolution_clock::now() - start;
+        counters_[7] += std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count();
+
+        counters_[10] = dataStructure.getSize();
+    }
+
+    template <class K>
+    void destroyDS(K& dataStructure) {
+        auto start = std::chrono::high_resolution_clock::now();
+
+        dataStructure.destroy(counters_[8]);
+
+        auto elapsed = std::chrono::high_resolution_clock::now() - start;
+        counters_[9] += std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count();
     }
 
     template <class K>
     void startInsertionTest(K& dataStructure) {
         auto start = std::chrono::high_resolution_clock::now();
-        for (auto& element : tests) {
-            dataStructure.insert(element, data_[0]);
-        }
+        dataStructure.insert(testingElement_, counters_[0]);
 
         auto elapsed = std::chrono::high_resolution_clock::now() - start;
-        data_[1] += std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count();
+        counters_[1] += std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count();
     }
 
     template <class K>
     void startSearchTest(K& dataStructure) {
         auto start = std::chrono::high_resolution_clock::now();
-        for (auto& element : tests) {
-            dataStructure.find(element, data_[2]);
-        }
+        dataStructure.find(testingElement_, counters_[2]);
 
         auto elapsed = std::chrono::high_resolution_clock::now() - start;
-        data_[3] += std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count();
+        counters_[3] += std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count();
     }
 
     template <class K>
     void startErasureTest(K& dataStructure) {
         auto start = std::chrono::high_resolution_clock::now();
-        for (auto& element : tests) {
-            dataStructure.erase(element, data_[4]);
-        }
+        dataStructure.erase(testingElement_, counters_[4]);
 
         auto elapsed = std::chrono::high_resolution_clock::now() - start;
-        data_[5] += std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count();
+        counters_[5] += std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count();
     }
 
     std::string getLog();
     
 private:
-    std::array<int64_t, 6> data_; // 0 - insertionOperations
-                                  // 1 - insertionTime
-                                  // 2 - searchOperations
-                                  // 3 - searchTime
-                                  // 4 - erasureOperations
-                                  // 5 - erasureTime
-    std::vector<T> tests;
+    std::vector<int64_t> counters_;    // 0 - insertionOperations
+                                       // 1 - insertionTime
+                                       // 2 - searchOperations
+                                       // 3 - searchTime
+                                       // 4 - erasureOperations
+                                       // 5 - erasureTime
+                                       // 6 - initializationOperations
+                                       // 7 - initializationTime
+                                       // 8 - destructionOperations
+                                       // 9 - destructionTime
+                                       // 10 - memoryUsed
+    std::vector<T> initState_;
+    std::string containedType_;
+    T testingElement_;
 
     template <class K>
     std::vector<K> createTestsBatch(size_t batchSize) {
@@ -77,6 +105,7 @@ private:
 
         std::vector<K> testsBatch(batchSize);
         std::generate(testsBatch.begin(), testsBatch.end(), [&](){ return numericalDistribution(gen); });
+        testingElement_ = numericalDistribution(gen);
         return testsBatch;
     }
 
@@ -86,26 +115,29 @@ private:
         std::mt19937 gen(rd());
 
         std::vector<std::string> testsBatch;
-        std::uniform_int_distribution<size_t> lenDistribution(1, 256);
         std::uniform_int_distribution<char> charDistribution(65, 122);
+        auto parsedContainedType = Utils::split({containedType_}, "_");
+        size_t length = std::stoi(parsedContainedType[parsedContainedType.size() - 1]);
 
         for (int i = 0; i < batchSize; ++i) {
-            std::string testElement(lenDistribution(gen), ' ');
+            std::string testElement(length, ' ');
             std::generate(testElement.begin(), testElement.end(), [&](){ return charDistribution(gen); });
             testsBatch.push_back(testElement);
         }
 
+        testingElement_.resize(length);
+        std::generate(testingElement_.begin(), testingElement_.end(), [&](){ return charDistribution(gen); });
         return testsBatch;
     }
 };
 
 template <class T>
 std::string TestContainer<T>::getLog() {
-    std::vector<std::string> res({std::to_string(tests.size())});
+    std::vector<std::string> res({std::to_string(initState_.size())});
 
-    for (auto& item : data_) {
-        res.push_back(std::to_string(item));
-        item = 0;
+    for (auto& counter : counters_) {
+        res.push_back(std::to_string(counter));
+        counter = 0;
     }
 
     return Utils::join(res, ",");

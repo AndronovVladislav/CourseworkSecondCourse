@@ -17,7 +17,7 @@ template <class T>
 class AVLTree {
 public:
 
-    AVLTree() : root_(nullptr) {};
+    AVLTree() : root_(nullptr), size_(0) {};
 
     void insert(T key, int64_t& operations);
 
@@ -27,13 +27,22 @@ public:
 
     void print();
 
+    size_t getSize() {
+        return size_ * sizeof(TreeNode<T>);
+    }
+
+    void destroy(TreeNode<T>* node, int64_t& operations);
+
+    void destroy(int64_t& operations);
+
     ~AVLTree() {
-        destroy(root_);
-        root_ = nullptr;
+        int64_t filler;
+        destroy(filler);
     }
 
 private:
     TreeNode<T> *root_;
+    size_t size_;
 
     int height(TreeNode<T>* node, int64_t& operations);
 
@@ -58,8 +67,6 @@ private:
     TreeNode<T>* eraseMin(TreeNode<T>* node, int64_t& operations);
 
     void print(TreeNode<T>* node, size_t level);
-
-    void destroy(TreeNode<T>* node);
 };
 
 template <class T>
@@ -175,6 +182,7 @@ TreeNode<T>* AVLTree<T>::insert(TreeNode<T>* node, T key, int64_t& operations) {
     operations += 1;
     if (!node) {
         operations += 7; // возврат + выделение + вызов конструктора + инициализация 4 полей
+        size_ += 1;
         return new TreeNode<T>(key);
     }
 
@@ -218,53 +226,72 @@ TreeNode<T>* AVLTree<T>::eraseMin(TreeNode<T>* node, int64_t& operations) {
 
 template <class T>
 TreeNode<T>* AVLTree<T>::erase(TreeNode<T>* node, T key, int64_t& operations) {
-    operations += 2;
+    operations += 1;
     if (!node) {
         operations += 1;
         return nullptr;
     }
 
     if (key < node->data) {
+        operations += 6;
         node->left = erase(node->left, key, operations);
     } else if (key > node->data) {
+        operations += 8;
         node->right = erase(node->right, key, operations);
     } else {
+        operations += 6;
         if (!node->left && !node->right) {
+            operations += 5;
             // leaf
+            size_ -= 1;
             delete node;
             node = nullptr;
             return nullptr;
         } else if ((!node->left && node->right) || (node->left && !node->right)) {
+            operations += 10;
             // one child
             if (node->left) {
+                operations += 8;
                 node->data = node->left->data;
                 delete node->left;
                 node->left = nullptr;
             } else {
+                operations += 8;
                 node->data = node->right->data;
+                size_ -= 1;
                 delete node->right;
                 node->right = nullptr;
             }
+
+            operations += 1;
             return balancing(node, operations);
         } else {
             // two children
+            operations += 18;
             TreeNode<T>* true_deleting = findMin(node->right, operations);
             node->data = true_deleting->data;
 
+            operations += 1;
             if (true_deleting->right) {
+                operations += 8;
                 true_deleting->data = true_deleting->right->data;
+                size_ -= 1;
                 delete true_deleting->right;
                 true_deleting->right = nullptr;
             }
+
+            operations += 1;
             return balancing(true_deleting, operations);
         }
     }
+
+    operations += 1;
     return balancing(node, operations);
 }
 
 template <class T>
 TreeNode<T>* AVLTree<T>::find(TreeNode<T>* node, T key, int64_t& operations) {
-    operations += 2;
+    operations += 1;
     if (!node) {
         operations += 1;
         return nullptr;
@@ -292,12 +319,21 @@ void AVLTree<T>::print(TreeNode<T>* node, size_t level) {
 }
 
 template <class T>
-void AVLTree<T>::destroy(TreeNode<T>* node) {
+void AVLTree<T>::destroy(TreeNode<T>* node, int64_t& operations) {
+    operations += 1;
     if (node) {
-        destroy(node->left);
-        destroy(node->right);
+        operations += 7;
+        destroy(node->left, operations);
+        destroy(node->right, operations);
         delete node;
     }
 }
+
+template <class T>
+void AVLTree<T>::destroy(int64_t& operations) {
+    destroy(root_, operations);
+    root_ = nullptr;
+}
+
 
 #endif //COURSEWORKSECONDCOURSE_AVLTREE_H
