@@ -31,60 +31,56 @@ public:
         return size_ * sizeof(TreeNode<T>);
     }
 
-    void destroy(TreeNode<T>* node, int64_t& operations);
+    void destroy(TreeNode<T>* node);
 
-    void destroy(int64_t& operations);
+    void destroy();
 
     ~AVLTree() {
-        int64_t filler;
-        destroy(filler);
+        destroy();
     }
 
 private:
     TreeNode<T> *root_;
     size_t size_;
 
-    int height(TreeNode<T>* node, int64_t& operations);
+    int height(TreeNode<T>* node);
 
-    int balanceFactor(TreeNode<T>* node, int64_t& operations);
+    int balanceFactor(TreeNode<T>* node);
 
-    void updateHeight(TreeNode<T>* node, int64_t& operations);
+    void updateHeight(TreeNode<T>* node);
 
-    TreeNode<T>* rightRotation(TreeNode<T>* node, int64_t& operations);
+    TreeNode<T>* rightRotation(TreeNode<T>* node);
 
-    TreeNode<T>* leftRotation(TreeNode<T>* node, int64_t& operations);
+    TreeNode<T>* leftRotation(TreeNode<T>* node);
 
-    TreeNode<T>* balancing(TreeNode<T>* node, int64_t& operations);
+    TreeNode<T>* balancing(TreeNode<T>* node);
 
     TreeNode<T>* insert(TreeNode<T>* node, T key, int64_t& operations);
 
     TreeNode<T>* find(TreeNode<T>* node, T key, int64_t& operations);
 
-    TreeNode<T>* findMin(TreeNode<T>* node, int64_t& operations);
+    TreeNode<T>* findMin(TreeNode<T>* node);
 
     TreeNode<T>* erase(TreeNode<T>* node, T key, int64_t& operations);
 
-    TreeNode<T>* eraseMin(TreeNode<T>* node, int64_t& operations);
+    TreeNode<T>* eraseMin(TreeNode<T>* node);
 
     void print(TreeNode<T>* node, size_t level);
 };
 
 template <class T>
 void AVLTree<T>::insert(T key, int64_t& operations) {
-    operations += 2;
     root_ = insert(root_, key, operations);
 }
 
 template <class T>
 TreeNode<T>* AVLTree<T>::find(T key, int64_t& operations) {
-    operations += 5; // инициализация + присваивание + вызов функции + логика + возврат
     TreeNode<T> *res = find(root_, key, operations);
     return res ? res : nullptr;
 }
 
 template <class T>
 void AVLTree<T>::erase(T key, int64_t& operations) {
-    operations += 2;
     root_ = erase(root_, key, operations);
 }
 
@@ -94,215 +90,167 @@ void AVLTree<T>::print() {
 }
 
 template <class T>
-int AVLTree<T>::height(TreeNode<T>* node, int64_t& operations) {
-    operations += 1;
-    if (node) {
-        operations += 2;
-        return node->height;
-    }
-    operations += 1;
-    return 0;
+int AVLTree<T>::height(TreeNode<T>* node) {
+    return node ? node->height : 0;
 }
 
 template <class T>
-int AVLTree<T>::balanceFactor(TreeNode<T>* node, int64_t& operations) {
-    operations += 4;
-    return height(node->left, operations) - height(node->right, operations);
+int AVLTree<T>::balanceFactor(TreeNode<T>* node) {
+    return height(node->left) - height(node->right);
 }
 
 template <class T>
-void AVLTree<T>::updateHeight(TreeNode<T>* node, int64_t& operations) {
-    operations += 10; // присваивание, 3 вызова функций, 4 обращения, арифметика, логика
-    node->height =
-            (height(node->left, operations) > height(node->right, operations) ?
-                height(node->left, operations) :
-                height(node->right, operations)
-            ) + 1;
+void AVLTree<T>::updateHeight(TreeNode<T>* node) {
+    node->height = (height(node->left) > height(node->right) ?
+                        height(node->left) :
+                        height(node->right))
+                    + 1;
 }
 
 template <class T>
-TreeNode<T>* AVLTree<T>::rightRotation(TreeNode<T>* node, int64_t& operations) {
-    operations += 8;
+TreeNode<T>* AVLTree<T>::rightRotation(TreeNode<T>* node) {
     TreeNode<T> *left_child = node->left;
     node->left = left_child->right;
     left_child->right = node;
 
-    operations += 2;
-    updateHeight(node, operations);
-    updateHeight(left_child, operations);
+    updateHeight(node);
+    updateHeight(left_child);
 
-    operations += 1;
     return left_child;
 }
 
 template <class T>
-TreeNode<T>* AVLTree<T>::leftRotation(TreeNode<T>* node, int64_t& operations) {
-    operations += 8;
+TreeNode<T>* AVLTree<T>::leftRotation(TreeNode<T>* node) {
     TreeNode<T>* right_child = node->right;
     node->right = right_child->left;
     right_child->left = node;
 
-    operations += 2;
-    updateHeight(node, operations);
-    updateHeight(right_child, operations);
+    updateHeight(node);
+    updateHeight(right_child);
 
-    operations += 1;
     return right_child;
 }
 
 template <class T>
-TreeNode<T>* AVLTree<T>::balancing(TreeNode<T>* node, int64_t& operations) {
-    operations += 1;
-    updateHeight(node, operations);
+TreeNode<T>* AVLTree<T>::balancing(TreeNode<T>* node) {
+    updateHeight(node);
 
-    if (balanceFactor(node, operations) == 2) {
-        operations += 4;
-        if (balanceFactor(node->left, operations) < 0) {
-            operations += 4;
-            node->left = leftRotation(node->left, operations);
+    if (balanceFactor(node) == 2) {
+        if (balanceFactor(node->left) < 0) {
+            node->left = leftRotation(node->left);
         }
-        operations += 2;
-        return rightRotation(node, operations);
-    } else if (balanceFactor(node, operations) == -2) {
-        operations += 4;
-        if (balanceFactor(node->right, operations) > 0) {
-            operations += 4;
-            node->right = rightRotation(node->right, operations);
+        return rightRotation(node);
+    } else if (balanceFactor(node) == -2) {
+        if (balanceFactor(node->right) > 0) {
+            node->right = rightRotation(node->right);
         }
-        operations += 2;
-        return leftRotation(node, operations);
+        return leftRotation(node);
     }
 
-    operations += 2; // 2 "неудачных" сравнения
     return node;
 }
 
 template <class T>
 TreeNode<T>* AVLTree<T>::insert(TreeNode<T>* node, T key, int64_t& operations) {
-    operations += 1;
     if (!node) {
-        operations += 7; // возврат + выделение + вызов конструктора + инициализация 4 полей
         size_ += 1;
         return new TreeNode<T>(key);
     }
 
     if (key < node->data) {
-        operations += 5;
+        operations += 1;
         node->left = insert(node->left, key, operations);
     } else if (key > node->data) {
-        operations += 5;
+        operations += 2;
         node->right = insert(node->right, key, operations);
     } else {
         operations += 2;
     }
 
-    operations += 1;
-    return balancing(node, operations);
+    return balancing(node);
 }
 
 template <class T>
-TreeNode<T>* AVLTree<T>::findMin(TreeNode<T>* node, int64_t& operations) {
-    operations += 1;
+TreeNode<T>* AVLTree<T>::findMin(TreeNode<T>* node) {
     if (node->left) {
-        operations += 2;
-        return findMin(node->left, operations);
+        return findMin(node->left);
     }
-    operations += 1;
     return node;
 }
 
 template <class T>
-TreeNode<T>* AVLTree<T>::eraseMin(TreeNode<T>* node, int64_t& operations) {
-    operations += 2;
+TreeNode<T>* AVLTree<T>::eraseMin(TreeNode<T>* node) {
     if (!node->left) {
-        operations += 2;
         return node->right;
     }
 
-    operations += 6;
     node->left = eraseMin(node->left);
-    return balancing(node, operations);
+    return balancing(node);
 }
 
 template <class T>
 TreeNode<T>* AVLTree<T>::erase(TreeNode<T>* node, T key, int64_t& operations) {
-    operations += 1;
     if (!node) {
-        operations += 1;
         return nullptr;
     }
 
     if (key < node->data) {
-        operations += 6;
+        operations += 1;
         node->left = erase(node->left, key, operations);
     } else if (key > node->data) {
-        operations += 8;
+        operations += 2;
         node->right = erase(node->right, key, operations);
     } else {
-        operations += 6;
+        operations += 2;
+        size_ -= 1;
         if (!node->left && !node->right) {
-            operations += 5;
             // leaf
-            size_ -= 1;
             delete node;
             node = nullptr;
             return nullptr;
         } else if ((!node->left && node->right) || (node->left && !node->right)) {
-            operations += 10;
             // one child
             if (node->left) {
-                operations += 8;
                 node->data = node->left->data;
                 delete node->left;
                 node->left = nullptr;
             } else {
-                operations += 8;
                 node->data = node->right->data;
-                size_ -= 1;
                 delete node->right;
                 node->right = nullptr;
             }
 
-            operations += 1;
-            return balancing(node, operations);
+            return balancing(node);
         } else {
             // two children
-            operations += 18;
-            TreeNode<T>* true_deleting = findMin(node->right, operations);
+            TreeNode<T>* true_deleting = findMin(node->right);
             node->data = true_deleting->data;
 
-            operations += 1;
             if (true_deleting->right) {
-                operations += 8;
                 true_deleting->data = true_deleting->right->data;
-                size_ -= 1;
                 delete true_deleting->right;
                 true_deleting->right = nullptr;
             }
 
-            operations += 1;
-            return balancing(true_deleting, operations);
+            return balancing(true_deleting);
         }
     }
 
-    operations += 1;
-    return balancing(node, operations);
+    return balancing(node);
 }
 
 template <class T>
 TreeNode<T>* AVLTree<T>::find(TreeNode<T>* node, T key, int64_t& operations) {
-    operations += 1;
     if (!node) {
-        operations += 1;
         return nullptr;
     } else if (node->data == key) {
-        operations += 3;
+        operations += 1;
         return node;
     } else if (node->data < key) {
-        operations += 7;
+        operations += 2;
         return find(node->right, key, operations);
     } else {
-        operations += 7;
+        operations += 2;
         return find(node->left, key, operations);
     }
 }
@@ -319,19 +267,17 @@ void AVLTree<T>::print(TreeNode<T>* node, size_t level) {
 }
 
 template <class T>
-void AVLTree<T>::destroy(TreeNode<T>* node, int64_t& operations) {
-    operations += 1;
+void AVLTree<T>::destroy(TreeNode<T>* node) {
     if (node) {
-        operations += 7;
-        destroy(node->left, operations);
-        destroy(node->right, operations);
+        destroy(node->left);
+        destroy(node->right);
         delete node;
     }
 }
 
 template <class T>
-void AVLTree<T>::destroy(int64_t& operations) {
-    destroy(root_, operations);
+void AVLTree<T>::destroy() {
+    destroy(root_);
     root_ = nullptr;
 }
 

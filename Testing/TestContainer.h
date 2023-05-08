@@ -7,7 +7,7 @@ template <class T>
 class TestContainer {
 public:
     TestContainer(size_t batchSize, std::string containedType) :
-        counters_(11, 0), containedType_(std::move(containedType)) {
+        counters_(9, 0), containedType_(std::move(containedType)) {
         initState_ = createTestsBatch<T>(batchSize);
     };
 
@@ -37,19 +37,19 @@ public:
         }
 
         auto elapsed = std::chrono::high_resolution_clock::now() - start;
-        counters_[7] += std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count();
+        counters_[6] += std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count();
 
-        counters_[10] = dataStructure.getSize();
+        counters_[8] = dataStructure.getSize();
     }
 
     template <class K>
     void destroyDS(K& dataStructure) {
         auto start = std::chrono::high_resolution_clock::now();
 
-        dataStructure.destroy(counters_[8]);
+        dataStructure.destroy();
 
         auto elapsed = std::chrono::high_resolution_clock::now() - start;
-        counters_[9] += std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count();
+        counters_[7] += std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count();
     }
 
     template <class K>
@@ -88,11 +88,9 @@ private:
                                        // 3 - searchTime
                                        // 4 - erasureOperations
                                        // 5 - erasureTime
-                                       // 6 - initializationOperations
-                                       // 7 - initializationTime
-                                       // 8 - destructionOperations
-                                       // 9 - destructionTime
-                                       // 10 - memoryUsed
+                                       // 6 - initializationTime
+                                       // 7 - destructionTime
+                                       // 8 - memoryUsed
     std::vector<T> initState_;
     std::string containedType_;
     T testingElement_;

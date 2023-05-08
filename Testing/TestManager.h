@@ -58,8 +58,7 @@ void TestManager<K>::prepareLoggers(std::string& logSuffix) {
                        "InsertionOperations,InsertionTimeNs,"
                        "SearchOperations,SearchTimeNs,"
                        "ErasureOperations,ErasureTimeNs,"
-                       "InitializationOperations,InitializationTimeNs,"
-                       "DestructionOperations,DestructionTimeNs,MemoryUsed\n";
+                       "InitializationTimeNs,DestructionTimeNs,MemoryUsed\n";
     }
 }
 
