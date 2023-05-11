@@ -6,9 +6,8 @@
 template <class T>
 struct TreeNode {
     T data;
+    TreeNode *left, *right;
     size_t height;
-    TreeNode *left;
-    TreeNode *right;
 
     explicit TreeNode(T key) : left(nullptr), right(nullptr), data(key), height(1) {};
 };
@@ -27,7 +26,7 @@ public:
 
     void print();
 
-    size_t getSize() {
+    int64_t getSize() {
         return size_ * sizeof(TreeNode<T>);
     }
 
@@ -75,8 +74,7 @@ void AVLTree<T>::insert(T key, int64_t& operations) {
 
 template <class T>
 TreeNode<T>* AVLTree<T>::find(T key, int64_t& operations) {
-    TreeNode<T> *res = find(root_, key, operations);
-    return res ? res : nullptr;
+    return find(root_, key, operations);
 }
 
 template <class T>
@@ -282,4 +280,4 @@ void AVLTree<T>::destroy() {
 }
 
 
-#endif //COURSEWORKSECONDCOURSE_AVLTREE_H
+#endif // COURSEWORKSECONDCOURSE_AVLTREE_H

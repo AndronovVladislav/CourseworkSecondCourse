@@ -8,4 +8,5 @@ include_directories(Code)
 add_executable(CourseworkSecondCourse
         main.cpp
         Code/SkipList.h
-        Code/AVLTree.h Testing/TestContainer.h Testing/Utils.cpp Testing/TestManager.h)
+        Code/AVLTree.h Testing/TestContainer.h Testing/Utils.cpp Testing/TestManager.h
+        )

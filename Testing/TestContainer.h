@@ -39,7 +39,11 @@ public:
         auto elapsed = std::chrono::high_resolution_clock::now() - start;
         counters_[6] += std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count();
 
+        auto parsedContainedType = Utils::split({containedType_}, "_");
         counters_[8] = dataStructure.getSize();
+        if (parsedContainedType[0] == "string") {
+            counters_[8] += initState_.size() * atoi(parsedContainedType[1].c_str());
+        }
     }
 
     template <class K>

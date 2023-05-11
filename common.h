@@ -2,7 +2,7 @@
 #define COURSEWORKSECONDCOURSE_COMMON_H
 
 #define STRING_LENGTHS { 16, 32, 64, 128, 256 }
-#define TESTS_AMOUNT 1
+#define TESTS_AMOUNT 50
 
 #include <algorithm>
 #include <array>

@@ -5,12 +5,12 @@
 
 template <class T>
 struct ListNode {
-    ListNode<T> *next, *down;
     T data;
+    ListNode<T> *next, *down;
 
     ListNode(ListNode<T> *next, ListNode<T> *down, T data) : next(next), down(down), data(data) {};
-    ListNode(ListNode<T> *next, ListNode<T> *down) : next(next), down(down)/*, data(-1)*/ {};
-    ListNode() : next(nullptr), down(nullptr)/*, data(-1)*/ {};
+    ListNode(ListNode<T> *next, ListNode<T> *down) : next(next), down(down) {};
+    ListNode() : next(nullptr), down(nullptr) {};
 };
 
 template <class T>
@@ -29,7 +29,7 @@ public:
 
     void print();
 
-    size_t getSize() {
+    int64_t getSize() {
         return size_ * sizeof(ListNode<T>);
     }
 
